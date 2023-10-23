@@ -1,5 +1,3 @@
-import { decodeHTML } from "entities";
-
 const MAFIA_DATA_BASE =
   "https://raw.githubusercontent.com/kolmafia/kolmafia/main/src/data";
 
@@ -23,8 +21,7 @@ export async function loadMafiaData(fileName: string, lastKnownSize = 0) {
   };
 }
 
-const parseEquipment = (equipmentList = "") =>
-  equipmentList.trim().split(", ").map(decodeHTML);
+const parseEquipment = (equipmentList = "") => equipmentList.trim().split(", ");
 
 // If it's stupid and works it ain't stupid
 const assumeRoundings = (num: number) => {
@@ -50,8 +47,8 @@ const parseTreats = (treatList = "") =>
     .filter((t) => t !== "none")
     .map((treat) => {
       const m = treat.match(/^(.*?) \((\d*\.?\d+)\)$/);
-      if (!m) return { item: decodeHTML(treat), chance: 1 };
-      return { item: decodeHTML(m[1]), chance: assumeRoundings(Number(m[2])) };
+      if (!m) return { item: treat, chance: 1 };
+      return { item: m[1], chance: assumeRoundings(Number(m[2])) };
     });
 
 export type Treat = {

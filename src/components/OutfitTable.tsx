@@ -9,6 +9,7 @@ import { Heading, Stack, Text, Image } from "@chakra-ui/react";
 import { Outfit, Price, Treat } from "../client";
 
 import { DataTable } from "./DataTable";
+import { decodeHTML } from "entities";
 
 declare module "@tanstack/table-core" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,12 +34,12 @@ const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
           formatMeat(t.price.price),
           `${numberFormat.format(
             t.price.soldInLastWeek ?? 0,
-          )} solid in last week`,
+          )} sold in last week`,
         ]
       : [];
   if (t.chance !== 1)
     metadata.push(`${Number((t.chance * 100).toFixed(2))}% chance`);
-  const result = [t.item];
+  const result = [decodeHTML(t.item)];
   if (metadata.length > 0) result.push(`(${metadata.join(", ")})`);
   return result.join(" ");
 };
@@ -66,9 +67,11 @@ const columns = [
     cell: (info) => (
       <Stack>
         <Heading as="h3" size="sm">
-          {info.getValue()}
+          {decodeHTML(info.getValue())}
         </Heading>
-        <Text fontSize="xs">{info.row.original.equipment.join(", ")}</Text>
+        <Text fontSize="xs">
+          {info.row.original.equipment.map(decodeHTML).join(", ")}
+        </Text>
       </Stack>
     ),
     header: "Name",
