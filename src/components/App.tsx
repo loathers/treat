@@ -12,6 +12,7 @@ import { Prices, fetchPrices } from "../client";
 import { OutfitTable } from "./OutfitTable";
 
 function App() {
+  const [loading, setLoading] = useState(false);
   const [outfits, setOutfits] = useState<OutfitType[]>([]);
   const [items, setItems] = useState<ItemType[]>([]);
   const [prices, setPrices] = useState<Prices>({});
@@ -27,9 +28,11 @@ function App() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       setOutfits((await loadOutfits())?.data ?? []);
       setItems((await loadItems())?.data ?? []);
       setPrices(await fetchPrices());
+      setLoading(false);
     }
 
     load();
@@ -55,7 +58,11 @@ function App() {
             Quick reference for outfits in the Kingdom of Loathing and what you
             get for wearing them while Trick-or-Treating.
           </Text>
-          <OutfitTable outfits={outfits} prices={itemNameToPrice} />
+          <OutfitTable
+            outfits={outfits}
+            prices={itemNameToPrice}
+            loading={loading}
+          />
         </Stack>
       </Container>
     </ChakraProvider>

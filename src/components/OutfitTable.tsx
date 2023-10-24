@@ -98,9 +98,10 @@ const columns = [
 type Props = {
   outfits: OutfitType[];
   prices: Record<string, Price>;
+  loading: boolean;
 };
 
-export function OutfitTable({ outfits, prices }: Props) {
+export function OutfitTable({ outfits, prices, loading }: Props) {
   const data = outfits.map((o) => ({
     ...o,
     treats: o.treats.map((t) => ({ ...t, price: prices[t.item] || null })),
@@ -118,6 +119,7 @@ export function OutfitTable({ outfits, prices }: Props) {
       columns={columns}
       data={data}
       initialSort={[{ id: "name", desc: false }]}
+      loading={loading}
     />
   );
 }
