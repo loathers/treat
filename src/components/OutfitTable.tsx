@@ -6,10 +6,11 @@ import {
 } from "@tanstack/react-table";
 import { Heading, Stack, Text, Image } from "@chakra-ui/react";
 
-import { Outfit, Price, Treat } from "../client";
+import { OutfitType, OutfitTreat } from "data-of-loathing";
 
 import { DataTable } from "./DataTable";
 import { decodeHTML } from "entities";
+import { Price, assumeRoundings } from "../client";
 
 declare module "@tanstack/table-core" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,8 +19,8 @@ declare module "@tanstack/table-core" {
   }
 }
 
-interface PricedOutfit extends Outfit {
-  treats: (Treat & { price: Price | null })[];
+interface PricedOutfit extends OutfitType {
+  treats: (OutfitTreat & { price: Price | null })[];
   averageTreatValue: number;
 }
 
@@ -38,7 +39,7 @@ const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
         ]
       : [];
   if (t.chance !== 1)
-    metadata.push(`${Number((t.chance * 100).toFixed(2))}% chance`);
+    metadata.push(`${Number((assumeRoundings(t.chance) * 100).toFixed(2))}% chance`);
   const result = [decodeHTML(t.item)];
   if (metadata.length > 0) result.push(`(${metadata.join(", ")})`);
   return result.join(" ");
@@ -92,7 +93,7 @@ const columns = [
 ] as unknown as ColumnDef<PricedOutfit>[];
 
 type Props = {
-  outfits: Outfit[];
+  outfits: OutfitType[];
   prices: Record<string, Price>;
 };
 

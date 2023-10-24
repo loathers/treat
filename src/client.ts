@@ -1,30 +1,5 @@
-const MAFIA_DATA_BASE =
-  "https://raw.githubusercontent.com/kolmafia/kolmafia/main/src/data";
-
-export async function loadMafiaData(fileName: string, lastKnownSize = 0) {
-  const url = `${MAFIA_DATA_BASE}/${fileName}.txt`;
-  if (lastKnownSize > 0) {
-    const sizeCheck = await fetch(url, { method: "HEAD" });
-    const newSize = Number(sizeCheck.headers.get("Content-Length") ?? 1);
-    if (newSize === lastKnownSize) return null;
-  }
-
-  const request = await fetch(url);
-  const raw = await request.text();
-  return {
-    data: raw
-      .split("\n")
-      .slice(1)
-      .filter((r) => r !== "" && !r.startsWith("#"))
-      .map((r) => r.split("\t")),
-    size: Number(request.headers.get("Content-Length")),
-  };
-}
-
-const parseEquipment = (equipmentList = "") => equipmentList.trim().split(", ");
-
 // If it's stupid and works it ain't stupid
-const assumeRoundings = (num: number) => {
+export const assumeRoundings = (num: number) => {
   switch (num) {
     case 0.3:
       return 1 / 3;
@@ -40,57 +15,6 @@ const assumeRoundings = (num: number) => {
       return num;
   }
 };
-const parseTreats = (treatList = "") =>
-  treatList
-    .trim()
-    .split(", ")
-    .filter((t) => t !== "none")
-    .map((treat) => {
-      const m = treat.match(/^(.*?) \((\d*\.?\d+)\)$/);
-      if (!m) return { item: treat, chance: 1 };
-      return { item: m[1], chance: assumeRoundings(Number(m[2])) };
-    });
-
-export type Treat = {
-  item: string;
-  chance: number;
-};
-export type Outfit = {
-  id: number;
-  name: string;
-  image: string;
-  equipment: string[];
-  treats: Treat[];
-};
-
-export async function fetchOutfits(): Promise<Outfit[]> {
-  const data = (await loadMafiaData("outfits"))?.data ?? [];
-
-  return data
-    .filter((d) => d.length > 1)
-    .map(([id, name, image, equipment, treats]) => ({
-      id: Number(id),
-      name,
-      image,
-      equipment: parseEquipment(equipment),
-      treats: parseTreats(id === "80" ? "double-ice gum" : treats),
-    }))
-    .toSorted((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
-}
-
-export async function fetchItems() {
-  const response = await loadMafiaData("items");
-  if (!response) return {};
-
-  return Object.fromEntries(
-    response.data
-      .filter((d) => d.length > 2)
-      .map(([id, name, , , , access]) => [
-        name,
-        { id: Number(id), tradeable: access.split(",").includes("t") },
-      ]),
-  );
-}
 
 export type Price = {
   lastChecked: number;

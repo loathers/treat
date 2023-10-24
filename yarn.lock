@@ -1797,6 +1797,11 @@ csstype@^3.0.11, csstype@^3.0.2:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.2.tgz#1d4bf9d572f11c14031f0436e1c10bc1f571f50b"
   integrity sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==
 
+data-of-loathing@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/data-of-loathing/-/data-of-loathing-1.2.0.tgz#48a03f536f9f9862f28c1f76aa65938909372643"
+  integrity sha512-bhq2Dpmt90K3bB8DVVUeWUSHAlBF+FYl0izb587D4bfmvDIUvH4tJBLlbrO3tNy6WMqfAUfGZhM9Yj8+d3VqsA==
+
 debug@^4.1.0, debug@^4.1.1, debug@^4.3.2, debug@^4.3.4:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"

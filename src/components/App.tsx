@@ -6,27 +6,25 @@ import {
   Container,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
+import { ItemType, loadItems, loadOutfits, OutfitType } from "data-of-loathing";
 
 import {
-  Outfit,
   Prices,
-  fetchItems,
-  fetchOutfits,
   fetchPrices,
 } from "../client";
 import { OutfitTable } from "./OutfitTable";
 
 function App() {
-  const [outfits, setOutfits] = useState<Outfit[]>([]);
-  const [items, setItems] = useState<
-    Record<string, { id: number; tradeable: boolean }>
-  >({});
+  const [outfits, setOutfits] = useState<OutfitType[]>([]);
+  const [items, setItems] = useState<ItemType[]>([]);
   const [prices, setPrices] = useState<Prices>({});
+
+  const itemNameToItem = useMemo(() => items.reduce((acc, item) => ({ ...acc, [item.name]: item }), {} as Record<string, ItemType>), [items]);
 
   useEffect(() => {
     async function load() {
-      setOutfits(await fetchOutfits());
-      setItems(await fetchItems());
+      setOutfits((await loadOutfits())?.data ?? []);
+      setItems((await loadItems())?.data ?? []);
       setPrices(await fetchPrices());
     }
 
@@ -36,12 +34,12 @@ function App() {
   const itemNameToPrice = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(items).map(([name, { id, tradeable }]) => [
+        Object.entries(itemNameToItem).map(([name, { id, tradeable }]) => [
           name,
           { ...prices[id], tradeable },
         ]),
       ),
-    [items, prices],
+    [itemNameToItem, prices],
   );
 
   return (
