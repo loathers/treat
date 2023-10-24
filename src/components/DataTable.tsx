@@ -13,13 +13,15 @@ import {
 export type DataTableProps<Data extends object> = {
   data: Data[];
   columns: ColumnDef<Data>[];
+  initialSort?: SortingState;
 };
 
 export function DataTable<Data extends object>({
   data,
   columns,
+  initialSort = [],
 }: DataTableProps<Data>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>(initialSort);
   const table = useReactTable({
     columns,
     data,

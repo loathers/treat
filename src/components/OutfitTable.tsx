@@ -39,7 +39,9 @@ const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
         ]
       : [];
   if (t.chance !== 1)
-    metadata.push(`${Number((assumeRoundings(t.chance) * 100).toFixed(2))}% chance`);
+    metadata.push(
+      `${Number((assumeRoundings(t.chance) * 100).toFixed(2))}% chance`,
+    );
   const result = [decodeHTML(t.item)];
   if (metadata.length > 0) result.push(`(${metadata.join(", ")})`);
   return result.join(" ");
@@ -76,6 +78,7 @@ const columns = [
       </Stack>
     ),
     header: "Name",
+    sortingFn: "text",
   }),
   columnHelper.accessor("averageTreatValue", {
     cell: (info) => (
@@ -110,5 +113,11 @@ export function OutfitTable({ outfits, prices }: Props) {
           ),
   })) satisfies PricedOutfit[];
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={data}
+      initialSort={[{ id: "name", desc: false }]}
+    />
+  );
 }

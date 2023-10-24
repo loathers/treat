@@ -8,10 +8,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { ItemType, loadItems, loadOutfits, OutfitType } from "data-of-loathing";
 
-import {
-  Prices,
-  fetchPrices,
-} from "../client";
+import { Prices, fetchPrices } from "../client";
 import { OutfitTable } from "./OutfitTable";
 
 function App() {
@@ -19,7 +16,14 @@ function App() {
   const [items, setItems] = useState<ItemType[]>([]);
   const [prices, setPrices] = useState<Prices>({});
 
-  const itemNameToItem = useMemo(() => items.reduce((acc, item) => ({ ...acc, [item.name]: item }), {} as Record<string, ItemType>), [items]);
+  const itemNameToItem = useMemo(
+    () =>
+      items.reduce(
+        (acc, item) => ({ ...acc, [item.name]: item }),
+        {} as Record<string, ItemType>,
+      ),
+    [items],
+  );
 
   useEffect(() => {
     async function load() {
