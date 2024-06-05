@@ -31,12 +31,25 @@ function App() {
       setLoading(true);
       setOutfits((await loadOutfits())?.data ?? []);
       setItems((await loadItems())?.data ?? []);
-      setPrices(await fetchPrices());
       setLoading(false);
     }
 
     load();
   }, []);
+
+  useEffect(() => {
+    async function load() {
+      if (Object.keys(itemNameToItem).length === 0) return;
+      if (outfits.length === 0) return;
+
+      const ids = outfits
+        .flatMap((o) => o.treats.map((t) => t.item))
+        .map((name) => itemNameToItem[name]?.id);
+      setPrices(await fetchPrices(ids));
+    }
+
+    load();
+  }, [outfits, itemNameToItem]);
 
   const itemNameToPrice = useMemo(
     () =>

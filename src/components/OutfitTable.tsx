@@ -32,10 +32,8 @@ const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
   const metadata =
     t.price && t.price.tradeable
       ? [
-          formatMeat(t.price.price),
-          `${numberFormat.format(
-            t.price.soldInLastWeek ?? 0,
-          )} sold in last week`,
+          formatMeat(t.price.value),
+          `${numberFormat.format(t.price.volume ?? 0)} sold in last two weeks`,
         ]
       : [];
   if (t.chance !== 1)
@@ -109,7 +107,7 @@ export function OutfitTable({ outfits, prices, loading }: Props) {
       o.treats.length < 1
         ? -1
         : o.treats.reduce(
-            (sum, t) => sum + (prices[t.item]?.price ?? 0) * t.chance,
+            (sum, t) => sum + (prices[t.item]?.value ?? 0) * t.chance,
             0,
           ),
   })) satisfies PricedOutfit[];

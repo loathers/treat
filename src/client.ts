@@ -17,36 +17,21 @@ export const assumeRoundings = (num: number) => {
 };
 
 export type Price = {
-  lastChecked: number;
-  price: number;
-  soldInLastWeek: number;
+  value: number;
+  volume: number;
+  date: Date;
+  itemId: number;
   tradeable?: boolean;
 };
 
 export type Prices = Record<number, Price>;
 
-export async function fetchPrices(): Promise<Prices> {
+export async function fetchPrices(ids: number[]): Promise<Prices> {
   const response = await fetch(
-    "https://raw.githubusercontent.com/libraryaddict/KolItemPrices/master/data/irrats_item_prices.txt",
+    `https://pricegun.loathers.net/api/${ids.join(",")}`,
   );
-  const data = await response.text();
-
-  // Slice the first line since it contains last updated, which is better calculated per item
-  const lines = data.split("\n").slice(1);
-
+  const results = (await response.json()) as Price[];
   return Object.fromEntries(
-    lines
-      .filter((l) => !l.startsWith("#"))
-      .map((l) => l.split("\t"))
-      .filter((p) => p.length >= 4)
-      .map((p) => p.slice(0, 4).map(Number))
-      .map(([id, lastChecked, price, soldInLastWeek]) => [
-        id,
-        {
-          lastChecked: lastChecked * 1000,
-          price,
-          soldInLastWeek,
-        } satisfies Price,
-      ]),
+    results.map((r) => [r.itemId, { ...r, date: new Date(r.date) }]),
   );
 }
