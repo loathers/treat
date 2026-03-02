@@ -16,6 +16,14 @@ export const assumeRoundings = (num: number) => {
   }
 };
 
+export type PriceGunPrice = {
+  value: { __decimal__: string };
+  volume: number;
+  date: Date;
+  itemId: number;
+  tradeable?: boolean;
+};
+
 export type Price = {
   value: number;
   volume: number;
@@ -30,8 +38,11 @@ export async function fetchPrices(ids: number[]): Promise<Prices> {
   const response = await fetch(
     `https://pricegun.loathers.net/api/${ids.join(",")}`,
   );
-  const results = (await response.json()) as Price[];
+  const results = (await response.json()) as PriceGunPrice[];
   return Object.fromEntries(
-    results.map((r) => [r.itemId, { ...r, date: new Date(r.date) }]),
+    results.map((r) => [
+      r.itemId,
+      { ...r, value: Number(r.value.__decimal__), date: new Date(r.date) },
+    ]),
   );
 }
