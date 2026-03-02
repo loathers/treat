@@ -6,11 +6,10 @@ import {
 } from "@tanstack/react-table";
 import { Heading, Stack, Text, Image } from "@chakra-ui/react";
 
-import { OutfitType, OutfitTreat } from "data-of-loathing";
-
 import { DataTable } from "./DataTable";
 import { decodeHTML } from "entities";
 import { Price, assumeRoundings } from "../client";
+import { type Outfit, type OutfitTreat } from "../data";
 
 declare module "@tanstack/table-core" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,7 +18,7 @@ declare module "@tanstack/table-core" {
   }
 }
 
-interface PricedOutfit extends OutfitType {
+interface PricedOutfit extends Outfit {
   treats: (OutfitTreat & { price: Price | null })[];
   averageTreatValue: number;
 }
@@ -95,7 +94,7 @@ const columns = [
 ] as unknown as ColumnDef<PricedOutfit>[];
 
 type Props = {
-  outfits: OutfitType[];
+  outfits: Outfit[];
   prices: Record<string, Price>;
   loading: boolean;
 };

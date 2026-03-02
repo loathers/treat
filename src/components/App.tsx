@@ -6,62 +6,30 @@ import {
   Text,
   Container,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
-import { ItemType, loadItems, loadOutfits, OutfitType } from "data-of-loathing";
+import { useEffect, useState } from "react";
 
-import { Prices, fetchPrices } from "../client";
+import { Price } from "../client";
+import { loadOutfitData, type Outfit } from "../data";
 import { OutfitTable } from "./OutfitTable";
 
 function App() {
   const [loading, setLoading] = useState(false);
-  const [outfits, setOutfits] = useState<OutfitType[]>([]);
-  const [items, setItems] = useState<ItemType[]>([]);
-  const [prices, setPrices] = useState<Prices>({});
-
-  const itemNameToItem = useMemo(
-    () =>
-      items.reduce(
-        (acc, item) => ({ ...acc, [item.name]: item }),
-        {} as Record<string, ItemType>,
-      ),
-    [items],
-  );
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [itemNameToPrice, setItemNameToPrice] = useState<
+    Record<string, Price>
+  >({});
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      setOutfits((await loadOutfits())?.data ?? []);
-      setItems((await loadItems())?.data ?? []);
+      const { outfits, itemNameToPrice } = await loadOutfitData();
+      setOutfits(outfits);
+      setItemNameToPrice(itemNameToPrice);
       setLoading(false);
     }
 
     load();
   }, []);
-
-  useEffect(() => {
-    async function load() {
-      if (Object.keys(itemNameToItem).length === 0) return;
-      if (outfits.length === 0) return;
-
-      const ids = outfits
-        .flatMap((o) => o.treats.map((t) => t.item))
-        .map((name) => itemNameToItem[name]?.id);
-      setPrices(await fetchPrices(ids));
-    }
-
-    load();
-  }, [outfits, itemNameToItem]);
-
-  const itemNameToPrice = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(itemNameToItem).map(([name, { id, tradeable }]) => [
-          name,
-          { ...prices[id], tradeable },
-        ]),
-      ),
-    [itemNameToItem, prices],
-  );
 
   return (
     <ChakraProvider value={defaultSystem}>
