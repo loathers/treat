@@ -58,6 +58,7 @@ const columns = [
   columnHelper.accessor("image", {
     cell: (info) => (
       <Image
+        minWidth={10}
         src={`https://s3.amazonaws.com/images.kingdomofloathing.com/otherimages/sigils/${info.getValue()}`}
       />
     ),

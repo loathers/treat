@@ -1,19 +1,15 @@
 import * as React from "react";
 import {
   Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   chakra,
   Text,
   Box,
   Spinner,
   Stack,
-  Fade,
+  Presence,
+  Flex,
 } from "@chakra-ui/react";
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   useReactTable,
   flexRender,
@@ -50,7 +46,7 @@ export function DataTable<Data extends object>({
 
   return (
     <Box position="relative">
-      <Fade in={loading} unmountOnExit>
+      <Presence present={loading} unmountOnExit>
         <Stack
           position="absolute"
           top={0}
@@ -61,59 +57,57 @@ export function DataTable<Data extends object>({
           padding={10}
           alignItems="center"
           borderRadius={10}
-          spacing={4}
+          gap={4}
         >
           <Text fontSize="xl">Loading outfits, candies and prices</Text>
           <Spinner />
         </Stack>
-      </Fade>
-      <Table>
-        <Thead>
+      </Presence>
+      <Table.Root>
+        <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
-            <Tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const meta = header.column.columnDef.meta;
-                return (
-                  <Th
-                    key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
-                    isNumeric={meta?.isNumeric}
-                  >
+            <Table.Row key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <Table.ColumnHeader
+                  key={header.id}
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  <Flex>
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext(),
                     )}
-
-                    <chakra.span pl="4">
-                      {header.column.getIsSorted() ? (
-                        header.column.getIsSorted() === "desc" ? (
-                          <TriangleDownIcon aria-label="sorted descending" />
-                        ) : (
-                          <TriangleUpIcon aria-label="sorted ascending" />
-                        )
-                      ) : null}
-                    </chakra.span>
-                  </Th>
-                );
-              })}
-            </Tr>
+                    {header.column.getIsSorted() ? (
+                      header.column.getIsSorted() === "desc" ? (
+                        <ChevronDown aria-label="sorted descending" />
+                      ) : (
+                        <ChevronUp aria-label="sorted ascending" />
+                      )
+                    ) : null}
+                  </Flex>
+                </Table.ColumnHeader>
+              ))}
+            </Table.Row>
           ))}
-        </Thead>
-        <Tbody>
+        </Table.Header>
+        <Table.Body>
           {table.getRowModel().rows.map((row) => (
-            <Tr key={row.id}>
+            <Table.Row key={row.id}>
               {row.getVisibleCells().map((cell) => {
                 const meta = cell.column.columnDef.meta;
                 return (
-                  <Td key={cell.id} isNumeric={meta?.isNumeric}>
+                  <Table.Cell
+                    key={cell.id}
+                    textAlign={meta?.isNumeric ? "end" : undefined}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Td>
+                  </Table.Cell>
                 );
               })}
-            </Tr>
+            </Table.Row>
           ))}
-        </Tbody>
-      </Table>
+        </Table.Body>
+      </Table.Root>
     </Box>
   );
 }

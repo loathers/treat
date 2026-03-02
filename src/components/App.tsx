@@ -1,5 +1,6 @@
 import {
   ChakraProvider,
+  defaultSystem,
   Heading,
   Stack,
   Text,
@@ -63,9 +64,9 @@ function App() {
   );
 
   return (
-    <ChakraProvider>
+    <ChakraProvider value={defaultSystem}>
       <Container maxWidth="150ch" padding={8}>
-        <Stack textAlign="center" spacing={8}>
+        <Stack textAlign="center" gap={8}>
           <Heading as="h1">Treat!</Heading>
           <Text>
             Quick reference for outfits in the Kingdom of Loathing and what you
