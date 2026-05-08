@@ -16,7 +16,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@tanstack/react-table": "^8.21.3",
-    "data-of-loathing": "3.1.1",
+    "data-of-loathing": "3.1.2",
     "entities": "^7.0.1",
     "lucide-react": "^0.576.0",
     "prettier": "^3.8.1",

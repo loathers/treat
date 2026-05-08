@@ -4,7 +4,4 @@ import dol from "data-of-loathing/vite";
 
 export default defineConfig({
   plugins: [react(), dol()],
-  optimizeDeps: {
-    exclude: ["data-of-loathing"],
-  },
 });
