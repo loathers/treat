@@ -18,8 +18,16 @@ declare module "@tanstack/table-core" {
   }
 }
 
-interface PricedOutfit extends Outfit {
-  treats: (OutfitTreat & { price: Price | null })[];
+interface PricedTreat extends OutfitTreat {
+  price: Price | null;
+}
+
+interface PricedOutfit {
+  id: number;
+  name: string;
+  image: string;
+  equipment: string[];
+  treats: PricedTreat[];
   averageTreatValue: number;
 }
 
@@ -27,7 +35,7 @@ const numberFormat = Intl.NumberFormat();
 const formatMeat = (price: number | undefined) =>
   `${price ? numberFormat.format(Math.round(price)) : "Unknown"} Meat`;
 
-const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
+const formatPricedTreat = (t: PricedTreat) => {
   const metadata =
     t.price && t.price.tradeable
       ? [
@@ -39,7 +47,7 @@ const formatPricedTreat = (t: PricedOutfit["treats"][number]) => {
     metadata.push(
       `${Number((assumeRoundings(t.chance) * 100).toFixed(2))}% chance`,
     );
-  const result = [decodeHTML(t.item)];
+  const result = [decodeHTML(t.item.name)];
   if (metadata.length > 0) result.push(`(${metadata.join(", ")})`);
   return result.join(" ");
 };
@@ -100,17 +108,23 @@ type Props = {
 };
 
 export function OutfitTable({ outfits, prices, loading }: Props) {
-  const data = outfits.map((o) => ({
-    ...o,
-    treats: o.treats.map((t) => ({ ...t, price: prices[t.item] || null })),
-    averageTreatValue:
-      o.treats.length < 1
-        ? -1
-        : o.treats.reduce(
-            (sum, t) => sum + (prices[t.item]?.value ?? 0) * t.chance,
-            0,
-          ),
-  })) satisfies PricedOutfit[];
+  const data = outfits.map((o) => {
+    const treats = o.treats.getItems();
+    return {
+      id: o.id,
+      name: o.name,
+      image: o.image,
+      equipment: o.equipment.getItems().map((item) => item.name),
+      treats: treats.map((t) => ({ ...t, price: prices[t.item.name] || null })),
+      averageTreatValue:
+        treats.length < 1
+          ? -1
+          : treats.reduce(
+              (sum, t) => sum + (prices[t.item.name]?.value ?? 0) * t.chance,
+              0,
+            ),
+    };
+  }) satisfies PricedOutfit[];
 
   return (
     <DataTable

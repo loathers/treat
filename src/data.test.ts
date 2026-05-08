@@ -1,137 +1,69 @@
-import { describe, expect, it } from "vitest";
-import { extractItemMeta, toOutfit, type RawOutfit } from "./data";
+import { describe, expect, it, vi } from "vitest";
+import { buildItemNameToPrice } from "./data";
 
-function rawOutfit(overrides = {}): RawOutfit {
-  return {
-    name: "Test Outfit",
-    image: "test.gif",
-    outfitEquipmentsByOutfit: { nodes: [] },
-    outfitTreatsByOutfit: { nodes: [] },
-    ...overrides,
-  } as unknown as RawOutfit;
+vi.mock("./client", () => ({
+  fetchPrices: vi.fn(),
+}));
+
+import { fetchPrices } from "./client";
+
+type OutfitInput = Parameters<typeof buildItemNameToPrice>[0][number];
+
+function makeCollection<T>(items: T[]) {
+  return { getItems: () => items };
 }
 
-describe("toOutfit", () => {
-  it("maps name and image", () => {
-    const result = toOutfit(rawOutfit({ name: "Cool Outfit", image: "cool.gif" }));
-    expect(result.name).toBe("Cool Outfit");
-    expect(result.image).toBe("cool.gif");
+function makeTreat(id: number, name: string, tradeable: boolean, chance = 1) {
+  return { chance, item: { id, name, tradeable } };
+}
+
+function makeOutfit(treats: ReturnType<typeof makeTreat>[]): OutfitInput {
+  return {
+    treats: makeCollection(treats),
+    equipment: makeCollection([]),
+  } as unknown as OutfitInput;
+}
+
+const basePrice = { value: 1000, volume: 50, date: new Date(), itemId: 1 };
+
+describe("buildItemNameToPrice", () => {
+  it("returns empty object for outfits with no treats", async () => {
+    vi.mocked(fetchPrices).mockResolvedValue({});
+    expect(await buildItemNameToPrice([makeOutfit([])])).toEqual({});
   });
 
-  it("maps equipment names", () => {
-    const result = toOutfit(
-      rawOutfit({
-        outfitEquipmentsByOutfit: {
-          nodes: [
-            { itemByEquipment: { name: "Cool Hat" } },
-            { itemByEquipment: { name: "Cool Shirt" } },
-          ],
-        },
-      }),
-    );
-    expect(result.equipment).toEqual(["Cool Hat", "Cool Shirt"]);
+  it("fetches prices for treat item ids", async () => {
+    vi.mocked(fetchPrices).mockResolvedValue({});
+    await buildItemNameToPrice([makeOutfit([makeTreat(42, "Candy Corn", true)])]);
+    expect(fetchPrices).toHaveBeenCalledWith([42]);
   });
 
-  it("falls back to empty string for null equipment name", () => {
-    const result = toOutfit(
-      rawOutfit({
-        outfitEquipmentsByOutfit: {
-          nodes: [{ itemByEquipment: null }],
-        },
-      }),
-    );
-    expect(result.equipment).toEqual([""]);
-  });
-
-  it("maps treats with item name and chance", () => {
-    const result = toOutfit(
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [
-            { chance: 0.5, itemByItem: { id: 1, name: "Candy Corn", tradeable: true } },
-            { chance: 1, itemByItem: { id: 2, name: "Lollipop", tradeable: false } },
-          ],
-        },
-      }),
-    );
-    expect(result.treats).toEqual([
-      { item: "Candy Corn", chance: 0.5 },
-      { item: "Lollipop", chance: 1 },
+  it("keys prices by item name", async () => {
+    vi.mocked(fetchPrices).mockResolvedValue({ 42: basePrice });
+    const result = await buildItemNameToPrice([
+      makeOutfit([makeTreat(42, "Candy Corn", true)]),
     ]);
+    expect(result["Candy Corn"]).toMatchObject({ value: 1000, volume: 50 });
   });
 
-  it("falls back to empty string for null treat item name", () => {
-    const result = toOutfit(
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [{ chance: 1, itemByItem: null }],
-        },
-      }),
-    );
-    expect(result.treats).toEqual([{ item: "", chance: 1 }]);
-  });
-});
-
-describe("extractItemMeta", () => {
-  it("returns empty object for no outfits", () => {
-    expect(extractItemMeta([])).toEqual({});
-  });
-
-  it("returns empty object for outfits with no treats", () => {
-    expect(extractItemMeta([rawOutfit()])).toEqual({});
-  });
-
-  it("extracts id and tradeable keyed by name", () => {
-    const result = extractItemMeta([
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [
-            { chance: 1, itemByItem: { id: 42, name: "Candy Corn", tradeable: true } },
-          ],
-        },
-      }),
+  it("merges tradeable from item into the price", async () => {
+    vi.mocked(fetchPrices).mockResolvedValue({ 1: basePrice, 2: { ...basePrice, itemId: 2 } });
+    const result = await buildItemNameToPrice([
+      makeOutfit([makeTreat(1, "Apple", true), makeTreat(2, "Rock", false)]),
     ]);
-    expect(result).toEqual({ "Candy Corn": { id: 42, tradeable: true } });
+    expect(result["Apple"].tradeable).toBe(true);
+    expect(result["Rock"].tradeable).toBe(false);
   });
 
-  it("defaults tradeable to false when null", () => {
-    const result = extractItemMeta([
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [{ chance: 1, itemByItem: { id: 1, name: "Mystery Candy", tradeable: null } }],
-        },
-      }),
-    ]);
-    expect(result["Mystery Candy"].tradeable).toBe(false);
-  });
-
-  it("skips treats with null itemByItem", () => {
-    const result = extractItemMeta([
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [{ chance: 1, itemByItem: null }],
-        },
-      }),
-    ]);
-    expect(result).toEqual({});
-  });
-
-  it("collects treats across multiple outfits", () => {
-    const result = extractItemMeta([
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [{ chance: 1, itemByItem: { id: 1, name: "Apple", tradeable: true } }],
-        },
-      }),
-      rawOutfit({
-        outfitTreatsByOutfit: {
-          nodes: [{ chance: 1, itemByItem: { id: 2, name: "Banana", tradeable: false } }],
-        },
-      }),
-    ]);
-    expect(result).toEqual({
-      Apple: { id: 1, tradeable: true },
-      Banana: { id: 2, tradeable: false },
+  it("collects treats across multiple outfits", async () => {
+    vi.mocked(fetchPrices).mockResolvedValue({
+      1: basePrice,
+      2: { ...basePrice, itemId: 2 },
     });
+    const result = await buildItemNameToPrice([
+      makeOutfit([makeTreat(1, "Apple", true)]),
+      makeOutfit([makeTreat(2, "Banana", false)]),
+    ]);
+    expect(Object.keys(result)).toEqual(expect.arrayContaining(["Apple", "Banana"]));
   });
 });
